@@ -1,6 +1,6 @@
 MODULE getopt;
 
-IMPORT Args, Console;
+IMPORT Args, Out;
 CONST StrLen* = 123;
 
 TYPE
@@ -31,25 +31,25 @@ VAR options : TOptions;
 PROCEDURE ShowHelp*(VAR opts : TOptions);
 VAR i : LONGINT;
 BEGIN
-   Console.String ("options:"); Console.Ln; Console.Ln;
+   Out.String ("options:"); Out.Ln; Out.Ln;
 
    FOR i := 0 TO LEN(opts^) -1 DO
-      Console.String ("   ");
-      Console.String(opts^[i].name);
+      Out.String ("   ");
+      Out.String(opts^[i].name);
       IF opts[i].hasarg THEN 
-               Console.String (" <value>")
+               Out.String (" <value>")
       END;
       IF opts[i].haslongname THEN
-       Console.Ln;
-       Console.String ("   ");
-       Console.String(opts^[i].longname);
+       Out.Ln;
+       Out.String ("   ");
+       Out.String(opts^[i].longname);
        IF opts[i].hasarg THEN
-          Console.String (" <value>");
+          Out.String (" <value>");
        END;
       END;
-      Console.Ln;
-      Console.String ("               ");
-      Console.String (opts[i].description); Console.Ln; Console.Ln;
+      Out.Ln;
+      Out.String ("               ");
+      Out.String (opts[i].description); Out.Ln; Out.Ln;
    END;
 END ShowHelp;
 
@@ -60,17 +60,17 @@ PROCEDURE ListOptions*(VAR opts : TOptions);
 VAR i : LONGINT;
 BEGIN
    FOR i := 0 TO LEN(opts^) -1 DO
-      Console.Int(i,1); Console.String (": "); Console.Ln;
-      Console.String("name : "); Console.String(opts^[i].name); Console.Ln;
+      Out.Int(i,1); Out.String (": "); Out.Ln;
+      Out.String("name : "); Out.String(opts^[i].name); Out.Ln;
       IF opts[i].haslongname THEN
-         Console.String("long name : "); Console.String(opts^[i].longname); Console.Ln;
+         Out.String("long name : "); Out.String(opts^[i].longname); Out.Ln;
       END;
       IF opts[i].hasarg THEN 
-         Console.String ("expects value") 
+         Out.String ("expects value") 
       ELSE 
-         Console.String ("does not expect value") 
+         Out.String ("does not expect value") 
       END; 
-      Console.Ln;
+      Out.Ln;
    END;
 
 END ListOptions;
@@ -82,10 +82,10 @@ BEGIN
        k := LEN(fopts^) -1;
        l := 0;
        REPEAT
-         Console.Int(l, 0); Console.String (" :"); Console.Ln;
-	 Console.String (opts[fopts[l].type].name); Console.Ln;
+         Out.Int(l, 0); Out.String (" :"); Out.Ln;
+	 Out.String (opts[fopts[l].type].name); Out.Ln;
 	 IF opts[fopts[l].type].hasarg THEN
-            Console.String("value: "); Console.String(fopts[l].value); Console.Ln;
+            Out.String("value: "); Out.String(fopts[l].value); Out.Ln;
 	 END;
 	 INC(l);
        UNTIL fopts[l].type < 0;
@@ -140,14 +140,14 @@ VAR s : string;
    l, argscount : LONGINT;
 BEGIN
    (*Args.Get(0, s);
-   Console.String(s); Console.Ln;
+   Out.String(s); Out.Ln;
    Args.Get(0, s);
-   Console.String(s); Console.Ln;
+   Out.String(s); Out.Ln;
    Args.Get(1, s);
-   Console.String(s); Console.Ln;*)
+   Out.String(s); Out.Ln;*)
    IF opts = NIL THEN HALT(1) END;
    argscount := Args.argc -1 ;
-   Console.String ("args count "); Console.Int(argscount, 3); Console.Ln; 
+   Out.String ("args count "); Out.Int(argscount, 3); Out.Ln; 
    IF argscount > 0 THEN
       NEW (fopts, argscount);
       k := 0; (* index of destination array for found options *)
@@ -190,12 +190,12 @@ options[2].name := "-F";
 options[2].haslongname := FALSE;
 options[2].hasarg := TRUE;
 
-Console.String ("Array lenght is "); Console.Int(LEN(options^),3); Console.Ln;
+Out.String ("Array lenght is "); Out.Int(LEN(options^),3); Out.Ln;
 ListOptions(options);
 
-Console.String("hm"); Console.Ln;
+Out.String("hm"); Out.Ln;
 PopulateOptions(options, foptions);
-Console.String("hm"); Console.Ln;
+Out.String("hm"); Out.Ln;
 ListOptions(options);
 ListFoundOptions(options, foptions);
 *)
