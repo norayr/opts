@@ -27,6 +27,7 @@ BEGIN
   opts.setOptName(opt, "-F", TRUE);
   opts.setOptDesc(opt, "some fancy description");
 
+  options.add(options, opt);
   Out.String ("possible options linked list lenght is "); Out.Int(options.count,3); Out.Ln;
 
   opts.showHelp(options);

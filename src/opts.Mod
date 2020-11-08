@@ -35,6 +35,7 @@ BEGIN
     opts.last.next := opt;
   END;
   opts.last := opt;
+  opt.next := NIL;
   INC(opts.count);
 END addOpt;
 
@@ -117,7 +118,7 @@ BEGIN
       Out.String(opt.description^);
       Out.Ln;
       opt := opt.next
-   UNTIL (opt = opts.last) OR (opt = NIL);
+   UNTIL opt = NIL;
 END showHelp;
 
 PROCEDURE listOptions*(VAR opts : Options);
@@ -138,7 +139,7 @@ BEGIN
       END; 
       Out.Ln;
       opt := opt.next
-   UNTIL (opt = opts.last) OR (opt = NIL);
+   UNTIL opt = NIL;
 END listOptions;
 
 PROCEDURE listFoundOptions*(VAR fopts : Options);
@@ -169,10 +170,20 @@ BEGIN
    RETURN NIL;
 END IsOption;
 
+PROCEDURE copyOpt(VAR opt: Option): Option;
+VAR
+  fopt: Option;
+BEGIN
+  fopt := createOpt();
+  setOptName(fopt, opt.name^, opt.hasval);
+  IF opt.haslongname THEN setOptLName(fopt, opt.longname^) END;
+  IF opt.description # NIL THEN setOptDesc(fopt, opt.description^) END;
+END copyOpt;
+
 PROCEDURE populateOptions*(VAR opts : Options): Options;
 VAR
   s : string;
-  opt: Option;
+  opt, fopt: Option;
   fopts: Options;
 BEGIN
    fopts := createOptions();
@@ -181,7 +192,8 @@ BEGIN
    REPEAT
       opt := IsOption(s^, opts); (* check if s is expected option *)
       IF opt # NIL THEN  (* if yes then *)
-         fopts.add(fopts, opt); (* record it *)
+         fopt := copyOpt(opt);
+         fopts.add(fopts, fopt); (* record it *)
          IF opt.hasval THEN (* check if after this option value expected *)
            s := optsos.Get();
            opt.val := s;
