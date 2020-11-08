@@ -2,9 +2,9 @@ MODULE opts;
 
 IMPORT Out, Strings, optsos := optsosv;
 TYPE
-   string* = POINTER TO ARRAY OF CHAR;
+   string* = optsos.string;
 
-   Option = POINTER TO OptionDesc;
+   Option* = POINTER TO OptionDesc;
 
    OptionDesc* = RECORD;
          name- : string;
@@ -19,27 +19,12 @@ TYPE
        setDesc : PROCEDURE(VAR opt: Option; desc: ARRAY OF CHAR);
       END;
 
-      FoundOpt = POINTER TO FoundOptDesc;
-
- FoundOptDesc* = RECORD
-         type* : LONGINT;
-	value* : string;
-         next* : FoundOpt;
-	END;
-
-    Options = POINTER TO OptionsDesc;
-    OptionsDesc = RECORD
+    Options* = POINTER TO OptionsDesc;
+    OptionsDesc* = RECORD
 	   add* : PROCEDURE(VAR opts: Options; VAR opt: Option);
-         first* : Option;
-	  last* : Option;
-	 count* : INTEGER;
-	 END;
-
-    FoundOptions = POINTER TO FoundOptionsDesc;
-    FoundOptionsDesc = RECORD
-         first* : Option;
-	  last* : Option;
-	 count* : INTEGER;
+         first- : Option;
+	  last- : Option;
+	 count- : INTEGER;
 	 END;
 
 PROCEDURE addOpt*(VAR opts: Options; VAR opt: Option);
@@ -70,7 +55,7 @@ VAR
   l: LONGINT;
 BEGIN
   l := Strings.Length(name);
-  NEW(opt.name, l);
+  NEW(opt.name, l+1);
   COPY(name, opt.name^);
   opt.hasval := hasval
 END setOptName;
@@ -81,16 +66,16 @@ VAR
 BEGIN
   opt.haslongname := TRUE;
   l := Strings.Length(name);
-  NEW(opt.longname, l);
+  NEW(opt.longname, l+1);
   COPY(name, opt.longname^)
 END setOptLName;
                            
-PROCEDURE setOptDesc(VAR opt: Option; desc: ARRAY OF CHAR);
+PROCEDURE setOptDesc*(VAR opt: Option; desc: ARRAY OF CHAR);
 VAR
   l: LONGINT;
 BEGIN
   l := Strings.Length(desc);
-  NEW(opt.description, l);
+  NEW(opt.description, l+1);
   COPY(desc, opt.description^);
 END setOptDesc;
 
@@ -156,94 +141,54 @@ BEGIN
    UNTIL opt = opts.last;
 END listOptions;
 
-PROCEDURE listFoundOptions*(VAR opts : Options; VAR fopts : FoundOptions);
- VAR
-   opt: Option;
+PROCEDURE listFoundOptions*(VAR fopts : Options);
 BEGIN
-   IF (opts # NIL) &  (fopts # NIL) THEN
-       k := LEN(fopts^) - 1;
-       l := 0;
-       REPEAT
-         Out.Int(l, 0); Out.String (" :"); Out.Ln;
-	 Out.String (opts[fopts[l].type].name); Out.Ln;
-	 IF opts[fopts[l].type].hasarg THEN
-            Out.String("value: "); Out.String(fopts[l].value); Out.Ln;
-	 END;
-	 INC(l);
-       UNTIL fopts[l].type < 0;
+   IF fopts # NIL THEN
+     listOptions(fopts)
    END
 END listFoundOptions;
 
-PROCEDURE isSet* (s : string; VAR opts: TOptions; VAR fopts : TFoundOpts; VAR hasarg: BOOLEAN; VAR value : string): BOOLEAN;
-VAR l, k : LONGINT;
-BEGIN
-   hasarg := FALSE;
-   IF fopts # NIL THEN
-      k := LEN(fopts^) -1;
-      l := 0;
-      REPEAT
-	 IF opts[fopts[l].type].name = s THEN
-
-            IF opts[fopts[l].type].hasarg THEN
-	       hasarg := TRUE;
-	       value := fopts[l].value;
-               RETURN TRUE;
-	    END;
-	 END;
-	 INC(l)
-      UNTIL fopts[l].type < 0;
-   END;
-RETURN FALSE
-END isSet;
-
-PROCEDURE FindOption (VAR s : ARRAY OF CHAR; VAR opts : Options) : Option;
+PROCEDURE IsOption (VAR s : ARRAY OF CHAR; VAR opts : Options) : Option;
 VAR 
   opt: Option;
 BEGIN
    opt := opts.first;
    IF opts = NIL THEN HALT(1) END;
-   k := LEN(opts^) -1 ;
-   FOR i := 0 TO k DO
-      IF opts^[i].name = s THEN
-         RETURN i;
+   REPEAT
+      IF opt.name^ = s THEN
+         RETURN opt;
       ELSE
-         IF opts^[i].haslongname THEN
-            IF opts^[i].longname = s THEN
-	       RETURN i
+         IF opt.haslongname THEN
+            IF opt.longname^ = s THEN
+	       RETURN opt
 	    END;
 	 END;
       END;
-   END;
-   RETURN -1;
-END isOption;
+   UNTIL opt.next = NIL;
+   RETURN NIL;
+END IsOption;
 
-PROCEDURE populateOptions*(VAR opts : Options; VAR fopts : FoundOptons);
+PROCEDURE populateOptions*(VAR opts : Options): Options;
 VAR
   s : string;
+  opt: Option;
+  fopts: Options;
 BEGIN
+   fopts := createOptions();
    IF opts = NIL THEN HALT(1) END;
-   optsos.Get(s);
-   WHILE s # NIL DO
-      l := IsOption(s, opts); (* check if s is expected option *)
-      IF l >=0 THEN  (* if yes then *)
-         fopts[k].type := l; (* record it *)
-         IF opts[l].hasarg THEN (* check if after this option value expected *)
-            IF i < argscount THEN
-               INC(i);
-               b := optsos.Get(s);
-               fopts[k].value := s;
-	    END;
+   s := optsos.Get();
+   REPEAT
+      opt := IsOption(s^, opts); (* check if s is expected option *)
+      IF opt # NIL THEN  (* if yes then *)
+         fopts.add(fopts, opt); (* record it *)
+         IF opt.hasval THEN (* check if after this option value expected *)
+           s := optsos.Get();
+           opt.val := s;
 	 END;
-	 INC(k);
-	 fopts[k].type := -1;
       END;
-   END;
+      s := optsos.Get()
+   UNTIL s = NIL;
+   RETURN fopts
 END populateOptions;
-
-PROCEDURE addOption(opt: Option);
-
-BEGIN
-
-END addOption;
 
 END opts.
