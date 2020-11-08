@@ -154,7 +154,6 @@ VAR
   opt: Option;
 BEGIN
    opt := opts.first;
-   IF opts = NIL THEN HALT(1) END;
    REPEAT
       IF opt.name^ = s THEN
          RETURN opt;

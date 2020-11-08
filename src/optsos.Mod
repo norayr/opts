@@ -17,6 +17,7 @@ VAR
   s: string;
 BEGIN
   s := NIL;
+  INC(cur);
   IF cur < argscount THEN
     Args.Get(cur, s0);
     NEW(s, Strings.Length(s0));

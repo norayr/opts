@@ -35,6 +35,7 @@ BEGIN
   opts.listOptions(options);
   Out.String("----------------------"); Out.Ln;
   foptions := opts.populateOptions(options);
+  Out.String("populated"); Out.Ln;
   opts.listOptions(foptions);
 
 
