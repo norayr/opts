@@ -117,7 +117,7 @@ BEGIN
       Out.String(opt.description^);
       Out.Ln;
       opt := opt.next
-   UNTIL opt = opts.last;
+   UNTIL (opt = opts.last) OR (opt = NIL);
 END showHelp;
 
 PROCEDURE listOptions*(VAR opts : Options);
@@ -138,7 +138,7 @@ BEGIN
       END; 
       Out.Ln;
       opt := opt.next
-   UNTIL opt = opts.last;
+   UNTIL (opt = opts.last) OR (opt = NIL);
 END listOptions;
 
 PROCEDURE listFoundOptions*(VAR fopts : Options);
@@ -164,7 +164,8 @@ BEGIN
 	    END;
 	 END;
       END;
-   UNTIL opt.next = NIL;
+      opt := opt.next
+   UNTIL (opt = opts.last) OR (opt = NIL);
    RETURN NIL;
 END IsOption;
 
