@@ -11,6 +11,7 @@ TYPE
   haslongname- : BOOLEAN;
      longname- : string;
        hasval- : BOOLEAN;
+     required- : BOOLEAN;
           val- : string;
   description- : string;
           next : Option;
@@ -51,14 +52,23 @@ BEGIN
   RETURN opts
 END createOptions;
 
-PROCEDURE setOptName*(VAR opt: Option; name: ARRAY OF CHAR; hasval: BOOLEAN);
+PROCEDURE setOptHasVal*(VAR opt: Option; hasval: BOOLEAN);
+BEGIN
+  opt.hasval := hasval
+END setOptHasVal;
+
+PROCEDURE setOptRequired*(VAR opt: Option; req: BOOLEAN);
+BEGIN
+  opt.required := req
+END setOptRequired;
+
+PROCEDURE setOptName*(VAR opt: Option; name: ARRAY OF CHAR);
 VAR
   l: LONGINT;
 BEGIN
   l := Strings.Length(name);
   NEW(opt.name, l+1);
-  COPY(name, opt.name^);
-  opt.hasval := hasval
+  COPY(name, opt.name^)
 END setOptName;
 
 PROCEDURE setOptLName*(VAR opt:  Option; name: ARRAY OF CHAR);
@@ -89,6 +99,7 @@ BEGIN
   o.haslongname := FALSE;
   o.longname := NIL;
   o.hasval := FALSE;
+  o.required := FALSE;
   o.val := NIL;
   o.description := NIL;
   o.next := NIL;
@@ -138,9 +149,46 @@ BEGIN
          Out.String ("does not expect value") 
       END; 
       Out.Ln;
+      IF opt.required THEN
+        Out.String ("required option");
+      ELSE
+        Out.String ("not required");
+      END;
+      Out.Ln;
       opt := opt.next
    UNTIL opt = NIL;
 END listOptions;
+
+PROCEDURE findOptByName*(name: string; opts: Options): Option;
+VAR opt: Option;
+BEGIN
+  opt := createOpt();
+  IF opts # NIL THEN
+  opt := opts.first;
+  REPEAT
+    IF opt.name^ = name THEN RETURN opt END
+    opt := opt.next
+  UNTIL opt = NIL;
+  END;
+  RETURN NIL 
+END findOptByName;
+
+PROCEDURE reqsSatisfied*(opts, fopts: Options): BOOLEAN;
+VAR
+  opt, opt2: Option;
+BEGIN
+  IF (fopts # NIL) OR (opts # NIL) THEN
+    opt := opts.first;
+    REPEAT
+      IF opt.required THEN
+        opt2 := findOptByName(opt.name^, fopts);  
+        IF opt2 = NIL THEN RETURN FALSE END;
+      END;
+      opt := opt.next 
+    UNTIL opt = NIL
+  END;
+  RETURN TRUE
+END reqsSatisfied;
 
 PROCEDURE listFoundOptions*(VAR fopts : Options);
 BEGIN
@@ -174,7 +222,8 @@ VAR
   fopt: Option;
 BEGIN
   fopt := createOpt();
-  setOptName(fopt, opt.name^, opt.hasval);
+  setOptName(fopt, opt.name^);
+  setOptHasVal(fopt, opt.hasval);
   IF opt.haslongname THEN setOptLName(fopt, opt.longname^) END;
   IF opt.description # NIL THEN setOptDesc(fopt, opt.description^) END;
 END copyOpt;

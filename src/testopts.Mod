@@ -10,21 +10,27 @@ BEGIN
   options := opts.createOptions();
   foptions := opts.createOptions();
   opt     := opts.createOpt();
-  opts.setOptName(opt, "-s", FALSE);
+  opts.setOptName(opt, "-s");
+  opts.setOptHasVal(opt, FALSE);
+  opts.setOptRequired(opt, FALSE);
   opts.setOptLName(opt, "--symbol");
   opts.setOptDesc(opt, "update symbol file");
 
   options.add(options, opt);
 
   opt     := opts.createOpt();
-  opts.setOptName(opt, "-m", TRUE);
+  opts.setOptName(opt, "-m");
+  opts.setOptHasVal(opt, TRUE);
+  opts.setOptRequired(opt, TRUE);
   opts.setOptLName(opt, "--main");
   opts.setOptDesc(opt, "main module");
 
   options.add(options, opt);
 
   opt     := opts.createOpt();
-  opts.setOptName(opt, "-F", TRUE);
+  opts.setOptName(opt, "-F");
+  opts.setOptHasVal(opt, TRUE);
+  opts.setOptRequired(opt, TRUE);
   opts.setOptDesc(opt, "some fancy description");
 
   options.add(options, opt);
@@ -37,6 +43,7 @@ BEGIN
   foptions := opts.populateOptions(options);
   Out.String("populated"); Out.Ln;
   opts.listOptions(foptions);
+
 
 
   (*
