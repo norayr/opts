@@ -8,6 +8,7 @@ all:
 		#git submodule init
 		#git submodule update
 		mkdir -p $(BUILD)
-		cd $(BUILD) && $(VOC) -s  $(mkfile_dir_path)/src/src/optsos.Mod \
-		$(mkfile_dir_path)/src/src/opts.Mod \
+		cd $(BUILD) && $(VOC) \
+		-s $(mkfile_dir_path)/src/src/optsos.Mod \
+		-s $(mkfile_dir_path)/src/src/opts.Mod \
 		$(mkfile_dir_path)/src/testopts.Mod -m
