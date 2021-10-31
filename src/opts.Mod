@@ -242,6 +242,7 @@ BEGIN
      HALT(1)
    END;
    s := optsos.Get();
+   				Out.String("opt: "); Out.String(s^); Out.Ln;
    IF s # NIL THEN
      REPEAT
         opt := findOpt(s^, opts); (* check if s is expected option *)
@@ -250,13 +251,26 @@ BEGIN
            fopts.add(fopts, fopt); (* record it *)
            IF opt.hasval THEN (* check if after this option value expected *)
              s := optsos.Get();
-             opt.val := s;
-             fopt.val := s;
-  	       END;
+   				Out.String("opt: "); Out.String(s^); Out.Ln;
+	     IF s # NIL THEN
+               opt.val := s;
+               fopt.val := s;
+	       IF s^[0] = '-' THEN
+                 Out.String ("warning: value starts ith dash?"); Out.Ln;
+	       END
+	     ELSE
+	       Out.String("option '"); Out.String(opt.name^);
+	       Out.String("' should follow by value"); Out.Ln;
+	       HALT(5);
+	     END;
+  	   END;
         ELSE
           Out.String("undefined option "); Out.String(s^); Out.Ln
         END;
-        IF s # NIL THEN s := optsos.Get() END
+        IF s # NIL THEN
+	  s := optsos.Get();
+   				Out.String("opt: "); Out.String(s^); Out.Ln;
+	END;
      UNTIL s = NIL;
    ELSE
      Out.String("no options on command line"); Out.Ln;
