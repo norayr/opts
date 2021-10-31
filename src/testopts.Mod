@@ -44,7 +44,7 @@ BEGIN
   Out.String("populated"); Out.Ln;
   opts.listOptions(foptions);
 
-  IF opts.reqsSatisfied THEN
+  IF opts.reqsSatisfied(options, foptions) THEN
     Out.String("requiremed opts provided");
   ELSE
     Out.String("required opts not provided");
