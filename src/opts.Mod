@@ -15,9 +15,11 @@ TYPE
           val- : string;
   description- : string;
           next : Option;
-       setName : PROCEDURE(VAR opt: Option; name: ARRAY OF CHAR; hasval: BOOLEAN);
+       setName : PROCEDURE(VAR opt: Option; name: ARRAY OF CHAR);
    setLongName : PROCEDURE(VAR opt: Option; name: ARRAY OF CHAR);
        setDesc : PROCEDURE(VAR opt: Option; desc: ARRAY OF CHAR);
+     setHasVal : PROCEDURE(VAR opt: Option; hasval: BOOLEAN);
+   setRequired : PROCEDURE(VAR opt: Option; req: BOOLEAN);
       END;
 
     Options* = POINTER TO OptionsDesc;
