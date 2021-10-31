@@ -168,7 +168,7 @@ BEGIN
   IF opts # NIL THEN
   opt := opts.first;
   REPEAT
-    IF opt.name^ = name^ THEN RETURN opt END
+    IF opt.name^ = name^ THEN RETURN opt END;
     opt := opt.next
   UNTIL opt = NIL;
   END;
