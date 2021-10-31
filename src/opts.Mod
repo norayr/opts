@@ -214,9 +214,10 @@ BEGIN
         IF opt2 = NIL THEN RETURN FALSE END;
       END;
       opt := opt.next 
-    UNTIL opt = NIL
+    UNTIL opt = NIL;
+    RETURN TRUE
   END;
-  RETURN TRUE
+  RETURN FALSE
 END reqsSatisfied;
 
 
