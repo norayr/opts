@@ -183,16 +183,11 @@ VAR
 BEGIN
    opt := opts.first;
    REPEAT
-      Out.String("comparing known option "); Out.String(opt.name^);
-      Out.String(" with received "); Out.String(s); Out.Ln;
       IF opt.name^ = s THEN
-         Out.String("that's it!"); Out.Ln;
          RETURN opt;
       ELSE
          IF opt.haslongname THEN
-            Out.String("checking for long name"); Out.Ln;
             IF opt.longname^ = s THEN
-              Out.String("that's it!"); Out.Ln;
 	            RETURN opt
 	          END;
 	       END;
