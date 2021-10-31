@@ -242,8 +242,10 @@ BEGIN
      HALT(1)
    END;
    s := optsos.Get();
-   				Out.String("opt: "); Out.String(s^); Out.Ln;
-   IF s # NIL THEN
+   IF s = NIL THEN
+     Out.String("no options on command line"); Out.Ln;
+     HALT(4);
+   ELSE
      REPEAT
         opt := findOpt(s^, opts); (* check if s is expected option *)
         IF opt # NIL THEN  (* if yes then *)
@@ -251,7 +253,6 @@ BEGIN
            fopts.add(fopts, fopt); (* record it *)
            IF opt.hasval THEN (* check if after this option value expected *)
              s := optsos.Get();
-   				Out.String("opt: "); Out.String(s^); Out.Ln;
 	     IF s # NIL THEN
                opt.val := s;
                fopt.val := s;
@@ -265,16 +266,13 @@ BEGIN
 	     END;
   	   END;
         ELSE
-          Out.String("undefined option "); Out.String(s^); Out.Ln
+          Out.String("undefined option "); Out.String(s^); Out.Ln;
+	  HALT(6)
         END;
         IF s # NIL THEN
 	  s := optsos.Get();
-   				Out.String("opt: "); Out.String(s^); Out.Ln;
 	END;
      UNTIL s = NIL;
-   ELSE
-     Out.String("no options on command line"); Out.Ln;
-     HALT(4);
    END;
    RETURN fopts
 END populateOptions;
