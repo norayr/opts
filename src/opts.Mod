@@ -169,21 +169,7 @@ BEGIN
     Out.Ln
   END
 END listOptions;
-(*
-PROCEDURE findOptByName*(name: string; opts: Options): Option;
-VAR opt: Option;
-BEGIN
-  opt := createOpt();
-  IF opts # NIL THEN
-  opt := opts.first;
-  REPEAT
-    IF opt.name^ = name^ THEN RETURN opt END;
-    opt := opt.next
-  UNTIL opt = NIL;
-  END;
-  RETURN NIL 
-END findOptByName;
-*)
+
 PROCEDURE listFoundOptions*(VAR fopts : Options);
 BEGIN
    IF fopts # NIL THEN
@@ -191,7 +177,7 @@ BEGIN
    END
 END listFoundOptions;
 
-PROCEDURE IsOption (VAR s : ARRAY OF CHAR; VAR opts : Options) : Option;
+PROCEDURE findOpt* (VAR s : ARRAY OF CHAR; VAR opts : Options) : Option;
 VAR 
   opt: Option;
 BEGIN
@@ -214,7 +200,7 @@ BEGIN
       opt := opt.next
    UNTIL opt = NIL;
    RETURN NIL;
-END IsOption;
+END findOpt;
 
 PROCEDURE reqsSatisfied*(opts, fopts: Options): BOOLEAN;
 VAR
@@ -224,7 +210,7 @@ BEGIN
     opt := opts.first;
     REPEAT
       IF opt.required THEN
-        opt2 := IsOption(opt.name^, fopts);  
+        opt2 := findOpt(opt.name^, fopts);  
         IF opt2 = NIL THEN RETURN FALSE END;
       END;
       opt := opt.next 
@@ -261,8 +247,8 @@ BEGIN
    END;
    s := optsos.Get();
    REPEAT
-      opt := IsOption(s^, opts); (* check if s is expected option *)
-      Out.String("got out of IsOption"); Out.Ln;
+      opt := findOpt(s^, opts); (* check if s is expected option *)
+      Out.String("got out of findOpt"); Out.Ln;
       IF opt # NIL THEN  (* if yes then *)
          Out.String("opt is not NIL"); Out.Ln;
          Out.String("opt name is "); Out.String(opt.name^); Out.Ln;
