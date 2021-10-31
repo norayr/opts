@@ -177,7 +177,7 @@ BEGIN
    END
 END listFoundOptions;
 
-PROCEDURE findOpt* (VAR s : ARRAY OF CHAR; VAR opts : Options) : Option;
+PROCEDURE findOpt* (s : ARRAY OF CHAR; VAR opts : Options) : Option;
 VAR 
   opt: Option;
 BEGIN
