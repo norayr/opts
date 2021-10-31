@@ -168,7 +168,7 @@ BEGIN
   IF opts # NIL THEN
   opt := opts.first;
   REPEAT
-    IF opt.name^ = name THEN RETURN opt END
+    IF opt.name^ = name^ THEN RETURN opt END
     opt := opt.next
   UNTIL opt = NIL;
   END;
@@ -183,7 +183,7 @@ BEGIN
     opt := opts.first;
     REPEAT
       IF opt.required THEN
-        opt2 := findOptByName(opt.name^, fopts);  
+        opt2 := findOptByName(opt.name, fopts);  
         IF opt2 = NIL THEN RETURN FALSE END;
       END;
       opt := opt.next 
