@@ -138,27 +138,36 @@ PROCEDURE listOptions*(VAR opts : Options);
 VAR
   opt: Option;
 BEGIN
-   opt := opts.first;
-   REPEAT
-      Out.String("name : ");
-      Out.String(opt.name^); Out.Ln;
-      IF opt.haslongname THEN
-         Out.String("long name : "); Out.String(opt.longname^); Out.Ln;
-      END;
-      IF opt.hasval THEN 
-         Out.String ("expects value") 
-      ELSE 
-         Out.String ("does not expect value") 
-      END; 
-      Out.Ln;
-      IF opt.required THEN
-        Out.String ("required option");
-      ELSE
-        Out.String ("not required");
-      END;
-      Out.Ln;
-      opt := opt.next
-   UNTIL opt = NIL;
+  IF opts # NIL THEN 
+    opt := opts.first;
+    IF opt # NIL THEN
+      REPEAT
+        Out.String("name : ");
+        Out.String(opt.name^); Out.Ln;
+        IF opt.haslongname THEN
+           Out.String("long name : "); Out.String(opt.longname^); Out.Ln;
+        END;
+        IF opt.hasval THEN 
+           Out.String ("expects value") 
+        ELSE 
+           Out.String ("does not expect value") 
+        END; 
+        Out.Ln;
+        IF opt.required THEN
+          Out.String ("required option");
+        ELSE
+          Out.String ("not required");
+        END;
+        Out.Ln;
+        opt := opt.next
+      UNTIL opt = NIL;
+    ELSE
+      Out.String("first argument received is NIL, exiting"); Out.Ln
+    END
+  ELSE
+    Out.String("options received are empty, exiting");
+    Out.Ln
+  END
 END listOptions;
 (*
 PROCEDURE findOptByName*(name: string; opts: Options): Option;
@@ -188,17 +197,22 @@ VAR
 BEGIN
    opt := opts.first;
    REPEAT
+      Out.String("comparing known option "); Out.String(opt.name^);
+      Out.String(" with received "); Out.String(s); Out.Ln;
       IF opt.name^ = s THEN
+         Out.String("that's it!"); Out.Ln;
          RETURN opt;
       ELSE
          IF opt.haslongname THEN
+            Out.String("checking for long name"); Out.Ln;
             IF opt.longname^ = s THEN
-	       RETURN opt
-	    END;
-	 END;
+              Out.String("that's it!"); Out.Ln;
+	            RETURN opt
+	          END;
+	       END;
       END;
       opt := opt.next
-   UNTIL (opt = opts.last) OR (opt = NIL);
+   UNTIL opt = NIL;
    RETURN NIL;
 END IsOption;
 
@@ -227,8 +241,11 @@ BEGIN
   fopt := createOpt();
   setOptName(fopt, opt.name^);
   setOptHasVal(fopt, opt.hasval);
+  fopt.haslongname := opt.haslongname;
   IF opt.haslongname THEN setOptLName(fopt, opt.longname^) END;
+  fopt.required := opt.required;
   IF opt.description # NIL THEN setOptDesc(fopt, opt.description^) END;
+  RETURN fopt
 END copyOpt;
 
 PROCEDURE populateOptions*(VAR opts : Options): Options;
@@ -238,19 +255,31 @@ VAR
   fopts: Options;
 BEGIN
    fopts := createOptions();
-   IF opts = NIL THEN HALT(1) END;
+   IF opts = NIL THEN
+     Out.String("no options defined, exiting"); Out.Ln;
+     HALT(1)
+   END;
    s := optsos.Get();
    REPEAT
       opt := IsOption(s^, opts); (* check if s is expected option *)
+      Out.String("got out of IsOption"); Out.Ln;
       IF opt # NIL THEN  (* if yes then *)
+         Out.String("opt is not NIL"); Out.Ln;
+         Out.String("opt name is "); Out.String(opt.name^); Out.Ln;
          fopt := copyOpt(opt);
          fopts.add(fopts, fopt); (* record it *)
          IF opt.hasval THEN (* check if after this option value expected *)
+           Out.String("checking for its value"); Out.Ln;
            s := optsos.Get();
+           Out.String("found ");
+           IF s = NIL THEN Out.String("NIL") ELSE Out.String(s^) END; Out.Ln;
            opt.val := s;
-	 END;
+           fopt.val := s;
+	       END;
+      ELSE
+        Out.String("undefined option "); Out.String(s^); Out.Ln
       END;
-      s := optsos.Get()
+      IF s # NIL THEN s := optsos.Get() END
    UNTIL s = NIL;
    RETURN fopts
 END populateOptions;

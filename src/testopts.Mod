@@ -45,7 +45,7 @@ BEGIN
   opts.listOptions(foptions);
 
   IF opts.reqsSatisfied(options, foptions) THEN
-    Out.String("requiremed opts provided");
+    Out.String("required opts provided");
   ELSE
     Out.String("required opts not provided");
   END;
