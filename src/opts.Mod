@@ -210,7 +210,7 @@ BEGIN
     opt := opts.first;
     REPEAT
       IF opt.required THEN
-        opt2 := isOption(opt.name^, fopts);  
+        opt2 := IsOption(opt.name^, fopts);  
         IF opt2 = NIL THEN RETURN FALSE END;
       END;
       opt := opt.next 
