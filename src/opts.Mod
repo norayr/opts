@@ -245,17 +245,11 @@ BEGIN
    IF s # NIL THEN
      REPEAT
         opt := findOpt(s^, opts); (* check if s is expected option *)
-        Out.String("got out of findOpt"); Out.Ln;
         IF opt # NIL THEN  (* if yes then *)
-           Out.String("opt is not NIL"); Out.Ln;
-           Out.String("opt name is "); Out.String(opt.name^); Out.Ln;
            fopt := copyOpt(opt);
            fopts.add(fopts, fopt); (* record it *)
            IF opt.hasval THEN (* check if after this option value expected *)
-             Out.String("checking for its value"); Out.Ln;
              s := optsos.Get();
-             Out.String("found ");
-             IF s = NIL THEN Out.String("NIL") ELSE Out.String(s^) END; Out.Ln;
              opt.val := s;
              fopt.val := s;
   	       END;
