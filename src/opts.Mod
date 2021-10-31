@@ -160,7 +160,7 @@ BEGIN
       opt := opt.next
    UNTIL opt = NIL;
 END listOptions;
-
+(*
 PROCEDURE findOptByName*(name: string; opts: Options): Option;
 VAR opt: Option;
 BEGIN
@@ -174,24 +174,7 @@ BEGIN
   END;
   RETURN NIL 
 END findOptByName;
-
-PROCEDURE reqsSatisfied*(opts, fopts: Options): BOOLEAN;
-VAR
-  opt, opt2: Option;
-BEGIN
-  IF (fopts # NIL) OR (opts # NIL) THEN
-    opt := opts.first;
-    REPEAT
-      IF opt.required THEN
-        opt2 := findOptByName(opt.name, fopts);  
-        IF opt2 = NIL THEN RETURN FALSE END;
-      END;
-      opt := opt.next 
-    UNTIL opt = NIL
-  END;
-  RETURN TRUE
-END reqsSatisfied;
-
+*)
 PROCEDURE listFoundOptions*(VAR fopts : Options);
 BEGIN
    IF fopts # NIL THEN
@@ -218,6 +201,24 @@ BEGIN
    UNTIL (opt = opts.last) OR (opt = NIL);
    RETURN NIL;
 END IsOption;
+
+PROCEDURE reqsSatisfied*(opts, fopts: Options): BOOLEAN;
+VAR
+  opt, opt2: Option;
+BEGIN
+  IF (fopts # NIL) & (opts # NIL) THEN
+    opt := opts.first;
+    REPEAT
+      IF opt.required THEN
+        opt2 := isOption(opt.name^, fopts);  
+        IF opt2 = NIL THEN RETURN FALSE END;
+      END;
+      opt := opt.next 
+    UNTIL opt = NIL
+  END;
+  RETURN TRUE
+END reqsSatisfied;
+
 
 PROCEDURE copyOpt(VAR opt: Option): Option;
 VAR
