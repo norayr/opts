@@ -18,7 +18,7 @@ VAR
 BEGIN
   s := NIL;
   INC(cur);
-  IF cur < argscount THEN
+  IF cur <= argscount THEN
     Args.Get(cur, s0);
     NEW(s, Strings.Length(s0)+1);
     COPY(s0, s^)
