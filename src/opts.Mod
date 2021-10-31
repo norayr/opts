@@ -265,4 +265,22 @@ BEGIN
    RETURN fopts
 END populateOptions;
 
+PROCEDURE valOfOpt*(o: ARRAY OF CHAR; VAR foptions: Options; VAR val: ARRAY OF CHAR);
+VAR
+  fopt: Option;
+BEGIN
+  COPY("", val);
+  fopt := createOpt();
+  fopt := findOpt(o, foptions);
+  IF fopt # NIL THEN
+    IF fopt.val # NIL THEN
+      COPY(fopt.val^, val);
+    ELSE
+      Out.String("no value for "); Out.String(o); Out.Ln
+    END
+  ELSE
+    Out.String("option "); Out.String(o); Out.String(" wasn't found on commandline"); Out.Ln
+  END
+END valOfOpt;
+
 END opts.
