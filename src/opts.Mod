@@ -244,6 +244,7 @@ BEGIN
    s := optsos.Get();
    IF s = NIL THEN
      Out.String("no options on command line"); Out.Ln;
+     showHelp(opts);
      HALT(4);
    ELSE
      REPEAT
