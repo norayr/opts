@@ -13,7 +13,7 @@ VAR
 
 PROCEDURE Get*(): string;
 VAR
-  s0: ARRAY 16 OF CHAR;
+  s0: ARRAY 64 OF CHAR;
   s: string;
 BEGIN
   s := NIL;
