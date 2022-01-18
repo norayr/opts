@@ -268,6 +268,7 @@ BEGIN
   	   END;
         ELSE
           Out.String("undefined option "); Out.String(s^); Out.Ln;
+          showHelp;
 	  HALT(6)
         END;
         IF s # NIL THEN
