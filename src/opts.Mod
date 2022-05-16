@@ -245,7 +245,7 @@ BEGIN
    IF s = NIL THEN
      (*Out.String("no options on command line"); Out.Ln;
      showHelp(opts);*)
-     RETURN FALSE;
+     RETURN NIL
      (*HALT(4);*)
    ELSE
      REPEAT
