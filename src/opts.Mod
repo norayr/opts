@@ -230,8 +230,6 @@ BEGIN
   RETURN fopt
 END copyOpt;
 
-PROCEDURE set
-
 PROCEDURE populateOptions*(VAR opts : Options): Options;
 VAR
   s : string;
