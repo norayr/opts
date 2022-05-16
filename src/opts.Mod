@@ -230,6 +230,8 @@ BEGIN
   RETURN fopt
 END copyOpt;
 
+PROCEDURE set
+
 PROCEDURE populateOptions*(VAR opts : Options): Options;
 VAR
   s : string;
@@ -243,9 +245,10 @@ BEGIN
    END;
    s := optsos.Get();
    IF s = NIL THEN
-     Out.String("no options on command line"); Out.Ln;
-     showHelp(opts);
-     HALT(4);
+     (*Out.String("no options on command line"); Out.Ln;
+     showHelp(opts);*)
+     RETURN FALSE;
+     (*HALT(4);*)
    ELSE
      REPEAT
         opt := findOpt(s^, opts); (* check if s is expected option *)
