@@ -259,7 +259,7 @@ BEGIN
                opt.val := s;
                fopt.val := s;
 	       IF s^[0] = '-' THEN
-                 Out.String ("warning: value starts ith dash?"); Out.Ln;
+                 Out.String ("warning: value starts with dash?"); Out.Ln;
 	       END
 	     ELSE
 	       Out.String("option '"); Out.String(opt.name^);
