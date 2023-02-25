@@ -5,6 +5,7 @@ TYPE
    string* = optsos.string;
 
    Option* = POINTER TO OptionDesc;
+   Options* = POINTER TO OptionsDesc;
 
    OptionDesc* = RECORD;
          name- : string;
@@ -20,9 +21,9 @@ TYPE
        setDesc : PROCEDURE(VAR opt: Option; desc: ARRAY OF CHAR);
      setHasVal : PROCEDURE(VAR opt: Option; hasval: BOOLEAN);
    setRequired : PROCEDURE(VAR opt: Option; req: BOOLEAN);
+	      branch : Options;
       END;
 
-    Options* = POINTER TO OptionsDesc;
     OptionsDesc* = RECORD
 	   add* : PROCEDURE(VAR opts: Options; VAR opt: Option);
          first- : Option;
@@ -63,6 +64,11 @@ PROCEDURE setOptRequired*(VAR opt: Option; req: BOOLEAN);
 BEGIN
   opt.required := req
 END setOptRequired;
+
+PROCEDURE setOptBranch*(VAR opt: Option; branch: Options);
+BEGIN
+  opt.branch := branch
+END setOptBranch;
 
 PROCEDURE setOptName*(VAR opt: Option; name: ARRAY OF CHAR);
 VAR
@@ -105,6 +111,7 @@ BEGIN
   o.val := NIL;
   o.description := NIL;
   o.next := NIL;
+	o.branch := NIL;
   o.setName := setOptName;
   o.setLongName := setOptLName;
   o.setDesc := setOptDesc;
