@@ -264,7 +264,7 @@ BEGIN
 
      opt := findOpt(s^, opts); (* Check if s is an expected option *)
      IF opt # NIL THEN
-       Out.String("Option found: "); Out.String(s^); Out.Ln;
+       (*Out.String("Option found: "); Out.String(s^); Out.Ln;*)
        fopt := copyOpt(opt);
        fopts.add(fopts, fopt); (* Record the option *)
 
