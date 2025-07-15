@@ -326,6 +326,41 @@ BEGIN
   END;
 END valOfOpt;
 
+PROCEDURE listOptions*(VAR opts : Options);
+VAR
+  opt: Option;
+BEGIN
+  IF opts # NIL THEN
+    opt := opts.first;
+    IF opt # NIL THEN
+      REPEAT
+        Out.String("name : ");
+        Out.String(opt.name^); Out.Ln;
+        IF opt.haslongname THEN
+           Out.String("long name : "); Out.String(opt.longname^); Out.Ln;
+        END;
+        IF opt.hasval THEN
+           Out.String ("expects value")
+        ELSE
+           Out.String ("does not expect value")
+        END;
+        Out.Ln;
+        IF opt.required THEN
+          Out.String ("required option");
+        ELSE
+          Out.String ("not required");
+        END;
+        Out.Ln;
+        opt := opt.next
+      UNTIL opt = NIL;
+    ELSE
+      Out.String("first argument received is NIL, exiting"); Out.Ln
+    END
+  ELSE
+    Out.String("options received are empty, exiting");
+    Out.Ln
+  END
+END listOptions;
 
 END opts.
 
