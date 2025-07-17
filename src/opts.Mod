@@ -4,6 +4,7 @@ IMPORT Out, Strings, optsos := optsosv;
 
 TYPE
    string* = optsos.string;
+   stringArr = POINTER TO ARRAY OF string;
 
    Option* = POINTER TO OptionDesc;
    Options* = POINTER TO OptionsDesc;
@@ -30,6 +31,8 @@ TYPE
          first- : Option;
     last- : Option;
    count- : INTEGER;
+   positionalArgs: stringArr;  (* New: positional arguments *)
+   numPositional-: INTEGER;                    (* New: count of positional args *)
    END;
 
 PROCEDURE addOpt*(VAR opts: Options; VAR opt: Option);
@@ -53,8 +56,30 @@ BEGIN
   opts.first := NIL;
   opts.last  := NIL;
   opts.count := 0;
+  opts.positionalArgs := NIL;  (* Initialize new fields *)
+  opts.numPositional := 0;
   RETURN opts
 END createOptions;
+
+PROCEDURE CleanupOptions*(VAR opts: Options);
+VAR
+  opt, next: Option;
+  i: INTEGER;
+BEGIN
+  IF opts # NIL THEN
+    opt := opts.first;
+    WHILE opt # NIL DO
+      next := opt.next;
+      opt := next;
+    END;
+
+    IF opts.positionalArgs # NIL THEN
+      opts.positionalArgs := NIL;
+    END;
+
+    opts := NIL;
+  END;
+END CleanupOptions;
 
 PROCEDURE setOptHasVal*(VAR opt: Option; hasval: BOOLEAN);
 BEGIN
@@ -119,11 +144,18 @@ BEGIN
   RETURN o
 END createOpt;
 
+PROCEDURE CleanupOpt*(VAR opt: Option);
+BEGIN
+  IF opt # NIL THEN
+    opt := NIL;
+  END;
+END CleanupOpt;
+
 PROCEDURE showHelp*(VAR opts : Options);
 VAR
   opt: Option;
 BEGIN
-   Out.String("options:"); Out.Ln; Out.Ln;
+   Out.String("Options:"); Out.Ln; Out.Ln;
    opt := opts.first;
 
    IF opt = NIL THEN
@@ -132,18 +164,7 @@ BEGIN
    END;
 
    WHILE opt # NIL DO
-      (* Debugging: print option status *)
-      (*
-      IF opt # NIL THEN
-        Out.String("Processing option..."); Out.Ln;
-      ELSE
-        Out.String("Option is NIL."); Out.Ln;
-      END;
-
-      Out.String("    ");
-      *)
-
-      (* Check if the option name is NIL before printing *)
+      Out.String("  ");
       IF opt.name # NIL THEN
         Out.String(opt.name^);
       ELSE
@@ -159,53 +180,43 @@ BEGIN
          END;
       END;
 
-
       IF opt.hasval THEN
-         Out.String (" = VALUE")
+         Out.String ("=VALUE")
       END;
 
       Out.Ln;
-      Out.String("               ");
-
-      (* Check if the description is NIL before printing *)
-
+      Out.String("        ");
       IF opt.description # NIL THEN
         Out.String(opt.description^);
       ELSE
         Out.String("<no description>");
       END;
+      Out.Ln; Out.Ln;
 
-      Out.Ln;
-
-      (* Move to the next option *)
       opt := opt.next;
    END;
+
+   Out.String("Positional arguments are accepted after options"); Out.Ln;
 END showHelp;
 
 PROCEDURE findOpt* (s : ARRAY OF CHAR; VAR opts : Options) : Option;
 VAR
   opt: Option;
 BEGIN
-  IF opts = NIL THEN
-    Out.String("Options list is NIL!"); Out.Ln;
+  IF (opts = NIL) OR (opts.first = NIL) THEN
     RETURN NIL;
   END;
 
   opt := opts.first;
   WHILE opt # NIL DO
-    IF opt.name # NIL THEN
-      IF opt.name^ = s THEN
-        RETURN opt;
-      END;
+    IF (opt.name # NIL) & (opt.name^ = s) THEN
+      RETURN opt;
     END;
 
-    IF opt.haslongname & (opt.longname # NIL) THEN
-      IF opt.longname^ = s THEN
-        RETURN opt;
-      END;
+    IF opt.haslongname & (opt.longname # NIL) & (opt.longname^ = s) THEN
+      RETURN opt;
     END;
 
-    (* Move to the next option, but make sure opt isn't NIL *)
     opt := opt.next;
   END;
 
@@ -218,13 +229,15 @@ VAR
 BEGIN
   IF (fopts # NIL) & (opts # NIL) THEN
     opt := opts.first;
-    REPEAT
+    WHILE opt # NIL DO
       IF opt.required THEN
         opt2 := findOpt(opt.name^, fopts);
-        IF opt2 = NIL THEN RETURN FALSE END;
+        IF (opt2 = NIL) OR (opt.hasval & (opt2.val = NIL)) THEN
+          RETURN FALSE
+        END;
       END;
       opt := opt.next
-    UNTIL opt = NIL;
+    END;
     RETURN TRUE
   END;
   RETURN FALSE
@@ -244,123 +257,150 @@ BEGIN
   RETURN fopt
 END copyOpt;
 
+PROCEDURE AddPositionalArg(VAR fopts: Options; s: string);
+VAR
+  newArr: stringArr;
+  i: INTEGER;
+BEGIN
+  IF fopts.numPositional = 0 THEN
+    NEW(fopts.positionalArgs, 1);
+  ELSE
+    NEW(newArr, fopts.numPositional + 1);
+    FOR i := 0 TO fopts.numPositional - 1 DO
+      newArr[i] := fopts.positionalArgs[i];
+    END;
+    fopts.positionalArgs := newArr;
+  END;
+  fopts.positionalArgs[fopts.numPositional] := s;
+  INC(fopts.numPositional);
+END AddPositionalArg;
+
 PROCEDURE populateOptions*(VAR opts : Options): Options;
 VAR
   s : string;
   opt, fopt: Option;
   fopts: Options;
+  stopProcessing: BOOLEAN;
 BEGIN
-   (*Out.String("Starting populateOptions..."); Out.Ln;*)
-
    fopts := createOptions();
    IF opts = NIL THEN
      Out.String("No options defined, exiting"); Out.Ln;
      HALT(1)
    END;
 
+   stopProcessing := FALSE;
    s := optsos.Get();
    WHILE s # NIL DO
-     (*Out.String("Current argument: "); Out.String(s^); Out.Ln;*)
-
-     opt := findOpt(s^, opts); (* Check if s is an expected option *)
-     IF opt # NIL THEN
-       (*Out.String("Option found: "); Out.String(s^); Out.Ln;*)
-       fopt := copyOpt(opt);
-       fopts.add(fopts, fopt); (* Record the option *)
-
-       IF opt.hasval THEN (* Check if the option requires a value *)
-         (*Out.String("Option requires a value: "); Out.String(s^); Out.Ln;*)
-         s := optsos.Get(); (* Get the next argument, which should be the value *)
-         IF s # NIL THEN
-           (*Out.String("Expecting value for option: "); Out.String(fopt.name^); Out.Ln;
-           Out.String("Assigning value: "); Out.String(s^); Out.Ln;*)
-           opt.val := s; (* Assign the value to the original option *)
-           fopt.val := s; (* Assign the value to the copied option *)
-
-           IF s^[0] = '-' THEN
-             Out.String("Warning: Value starts with dash?"); Out.Ln;
-           END;
-         ELSE
-           Out.String("Option '"); Out.String(opt.name^); Out.String("' should be followed by a value"); Out.Ln;
-           HALT(5);
-         END;
-       END;
+     (* Handle option terminator "--" *)
+     IF ~stopProcessing & (s^ = "--") THEN
+       stopProcessing := TRUE;
      ELSE
-       (* Here is the key change: Instead of treating 'aaa.txt' as an option,
-          assume it is the value for '-f' if '-f' is missing *)
-       fopt := findOpt("-f", opts); (* Find the '-f' option *)
-       IF (fopt # NIL) & (fopt.val = NIL) THEN
-         (*Out.String("Assigning value '"); Out.String(s^); Out.String("' to '-f'"); Out.Ln;*)
-         fopt.val := s; (* Set the value of '-f' *)
+       (* Only look for options if not in stopProcessing mode *)
+       IF ~stopProcessing THEN
+         opt := findOpt(s^, opts);
        ELSE
-         Out.String("Undefined option: "); Out.String(s^); Out.Ln;
-         showHelp(opts); (* Show help and exit if an unknown option is encountered *)
-         HALT(6);
+         opt := NIL;
+       END;
+
+       IF opt # NIL THEN
+         fopt := copyOpt(opt);
+         fopts.add(fopts, fopt);
+
+         IF opt.hasval THEN
+           s := optsos.Get();
+           (* Validate option value *)
+           IF (s = NIL) OR (s^[0] = '-') & (~stopProcessing) THEN
+             Out.String("Option '"); Out.String(opt.name^); 
+             Out.String("' requires a value"); Out.Ln;
+             HALT(5);
+           END;
+           opt.val := s;
+           fopt.val := s;
+         END;
+       ELSE
+         (* This is a positional argument *)
+         AddPositionalArg(fopts, s);
        END;
      END;
-
-     s := optsos.Get(); (* Get the next argument *)
+     
+     s := optsos.Get();  (* Get next argument *)
    END;
 
    RETURN fopts;
 END populateOptions;
 
+PROCEDURE GetPositionalArg*(VAR foptions: Options; idx: INTEGER): string;
+BEGIN
+  IF (foptions # NIL) & (foptions.positionalArgs # NIL) &
+     (idx >= 0) & (idx < foptions.numPositional) THEN
+    RETURN foptions.positionalArgs[idx];
+  END;
+  RETURN NIL;
+END GetPositionalArg;
+
+PROCEDURE NumPositionalArgs*(VAR foptions: Options): INTEGER;
+BEGIN
+  IF foptions # NIL THEN
+    RETURN foptions.numPositional;
+  END;
+  RETURN 0;
+END NumPositionalArgs;
+
 PROCEDURE valOfOpt*(o: ARRAY OF CHAR; VAR foptions: Options; VAR val: ARRAY OF CHAR);
 VAR
   fopt: Option;
 BEGIN
-  COPY("", val);  (* Initialize val with an empty string *)
-  (*Out.String("Looking for value of option: "); Out.String(o); Out.Ln;*)  (* Debugging: Show option name *)
-  fopt := findOpt(o, foptions);  (* Find the option by its name *)
+  COPY("", val);
+  fopt := findOpt(o, foptions);
 
-  IF fopt # NIL THEN
-   (* Out.String("Option found: "); Out.String(fopt.name^); Out.Ln;*)  (* Debugging: Option found *)
-    IF fopt.val # NIL THEN
-      (*Out.String("Value found: "); Out.String(fopt.val^); Out.Ln;*)  (* Debugging: Value found *)
-      COPY(fopt.val^, val);  (* Copy the value if it exists *)
-    ELSE
-      Out.String("No value provided for option: "); Out.String(o); Out.Ln;
-    END;
-  ELSE
-    Out.String("Option '"); Out.String(o); Out.String("' not found in command-line arguments."); Out.Ln;
+  IF (fopt # NIL) & (fopt.val # NIL) THEN
+    COPY(fopt.val^, val);
   END;
 END valOfOpt;
 
 PROCEDURE listOptions*(VAR opts : Options);
 VAR
   opt: Option;
+  i: INTEGER;
 BEGIN
-  IF opts # NIL THEN
-    opt := opts.first;
-    IF opt # NIL THEN
-      REPEAT
-        Out.String("name : ");
-        Out.String(opt.name^); Out.Ln;
-        IF opt.haslongname THEN
-           Out.String("long name : "); Out.String(opt.longname^); Out.Ln;
-        END;
-        IF opt.hasval THEN
-           Out.String ("expects value")
-        ELSE
-           Out.String ("does not expect value")
-        END;
-        Out.Ln;
-        IF opt.required THEN
-          Out.String ("required option");
-        ELSE
-          Out.String ("not required");
-        END;
-        Out.Ln;
-        opt := opt.next
-      UNTIL opt = NIL;
-    ELSE
-      Out.String("first argument received is NIL, exiting"); Out.Ln
-    END
-  ELSE
-    Out.String("options received are empty, exiting");
-    Out.Ln
-  END
+  IF opts = NIL THEN
+    Out.String("Options: NIL"); Out.Ln;
+    RETURN;
+  END;
+
+  Out.String("Options ("); Out.Int(opts.count,0); Out.String("):"); Out.Ln;
+  opt := opts.first;
+  WHILE opt # NIL DO
+    Out.String("  ");
+    IF opt.name # NIL THEN Out.String(opt.name^) END;
+
+    IF opt.haslongname & (opt.longname # NIL) THEN
+      Out.String(" / "); Out.String(opt.longname^);
+    END;
+
+    IF opt.hasval THEN
+      Out.String(" [value]");
+    END;
+
+    IF opt.required THEN
+      Out.String(" (required)");
+    END;
+
+    Out.Ln;
+    opt := opt.next;
+  END;
+
+  IF opts.numPositional > 0 THEN
+    Out.Ln;
+    Out.String("Positional arguments (");
+    Out.Int(opts.numPositional,0);
+    Out.String("):"); Out.Ln;
+    FOR i := 0 TO opts.numPositional - 1 DO
+      Out.String("  ");
+      Out.String(opts.positionalArgs[i]^);
+      Out.Ln;
+    END;
+  END;
 END listOptions;
 
 END opts.
-

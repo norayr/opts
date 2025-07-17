@@ -24,6 +24,7 @@ build_deps:
 	#make -f $(DPS)/strutils/GNUmakefile BUILD=$(BUILD)
 
 buildThis:
+	mkdir -p $(BUILD)
 	cd $(BUILD) && $(VOC) -s $(mkfile_dir_path)/src/optsos.Mod
 	cd $(BUILD) && $(VOC) -s $(mkfile_dir_path)/src/opts.Mod
 
