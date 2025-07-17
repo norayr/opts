@@ -75,21 +75,57 @@ To compile and run with VOC:
 make
 ```
 
-## 🧪 Output Sample
+To build the test:
 
 ```
+make tests
+```
+
+## 🧪 Output Samples
+
+```
+ $ build/testopts -s -m aaa
+
 Defined options:
+Options (3):
   -s / --symbol
   -m / --main [value] (required)
   -F [value] (required)
 
+----------------------
+
 Parsed options:
+Options (2):
   -s / --symbol
   -m / --main [value] (required)
 
+----------------------
+Missing required options!
+
+Test completed
+```
+
+Now requirements are satisfied:
+
+```
+ $ build/testopts -m a -F o
+
+Defined options:
+Options (3):
+  -s / --symbol
+  -m / --main [value] (required)
+  -F [value] (required)
+
+----------------------
+
+Parsed options:
+Options (2):
+  -m / --main [value] (required)
+  -F [value] (required)
+
+----------------------
 All required options provided
-Positional arg 0: arg1
-Positional arg 1: arg2
+
 Test completed
 ```
 
