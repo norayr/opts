@@ -13,15 +13,20 @@ VAR
 
 PROCEDURE Get*(): string;
 VAR
-  s0: ARRAY 64 OF CHAR;
+  capacity: LONGINT;
   s: string;
 BEGIN
   s := NIL;
   INC(cur);
   IF cur <= argscount THEN
-    Args.Get(cur, s0);
-    NEW(s, Strings.Length(s0)+1);
-    COPY(s0, s^)
+    capacity := 64;
+    LOOP
+      NEW(s, capacity);
+      Args.Get(cur, s^);
+      IF Strings.Length(s^) < capacity - 1 THEN EXIT END;
+      ASSERT(capacity <= MAX(LONGINT) DIV 2);
+      capacity := capacity * 2
+    END
   END;
   RETURN s
 END Get;
